@@ -166,32 +166,20 @@ export class UploadQuestionPage {
           contentType: 'audio/mp3'
         };
 
-        console.log("ABCABC got blob file" + JSON.stringify(blob));
-
-        var uploadTask = ref.put(blob, metadata);
-
-        console.log("ABCABC created upload task");
+        var uploadTask:firebase.storage.UploadTask = ref.put(blob, metadata);
 
         uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED,
-          (snapshot) => {
-
+          (snapshot: firebase.storage.UploadTaskSnapshot) => {
             var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log("ABCABC stated changed - prgress: " + progress + " state: " + snapshot.state);
-            switch (snapshot.state) {
-              case firebase.storage.TaskState.PAUSED:
-                break;
-              case firebase.storage.TaskState.RUNNING:
-                break;
-            }
           }, (error) => {
             this.loading.dismiss();
             this.alert.showAlert('OOPS...', `could not upload song: ${JSON.stringify(error)}`, 'OK');
-          }, () => {
-            console.log("ABCABC finnish upload");
-            this.saveRecordingToDB();
           });
-      })
-      .catch((error) => {
+
+        uploadTask.then(() => {
+            this.saveRecordingToDB();
+        });
+      }).catch((error) => {
         this.loading.dismiss();
         this.alert.showAlert('OOPS...', `could not read file: ${JSON.stringify(error)}`, 'OK');
       });
@@ -202,8 +190,6 @@ export class UploadQuestionPage {
     this.user.currentUser.first().subscribe((data) => {
       this.userID = data.userID;
 
-      console.log("ABCABC got user details " + this.userID);
-      console.log("ABCABC got user cords " + this.cordinates);
       this.question.writeNewQuestion(this.questionID, this.songGenres, this.songLanguages, this.recordPath, this.userID, this.title, this.cordinates)
         .then(() => {
           this.loading.dismiss();

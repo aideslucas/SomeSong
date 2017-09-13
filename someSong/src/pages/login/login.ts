@@ -43,12 +43,12 @@ export class LoginPage {
   }
 
   listenToLogin() {
-    this.authStateChanged = this._auth.authState.onAuthStateChanged(authUser => {
+    this.authStateChanged = this._auth.authState.subscribe(authUser => {
       if (authUser != null) {
         this._score.writeNewScore(authUser.uid);
-        this._user.logIn(authUser.uid);
-        this._user.getUser(authUser.uid).then(user => {
-          if (user.val() == null) {
+        this._user.logIn();
+        this._user.getUserNew(authUser.uid).first().subscribe(user => {
+          if (user == null) {
             var displayName, email, image;
             this.loader.present();
 
@@ -81,7 +81,7 @@ export class LoginPage {
               });
             });
           }
-          else if (user.val().languages == null) {
+          else if (user.languages == null) {
             var user;
             this._user.currentUser.first().subscribe(data => {
               user = data;
@@ -119,7 +119,7 @@ export class LoginPage {
     this.registerModal.onDidDismiss(data => {
       this.listenToLogin();
     });
-    this.authStateChanged();
+    this.authStateChanged.unsubscribe();
     this.registerModal.present();
   }
 
@@ -132,6 +132,6 @@ export class LoginPage {
   }
 
   ionViewWillUnload() {
-    this.authStateChanged();
+    this.authStateChanged.unsubscribe();
   }
 }

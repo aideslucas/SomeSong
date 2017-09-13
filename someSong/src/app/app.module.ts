@@ -25,7 +25,7 @@ import { SplashScreen } from '@ionic-native/splash-screen';
 import { Facebook } from "@ionic-native/facebook";
 import { File } from "@ionic-native/file";
 import { MediaPlugin } from "@ionic-native/media";
-import { Camera,  CameraOptions } from "@ionic-native/camera";
+import { Camera } from "@ionic-native/camera";
 
 
 // Providers
@@ -56,6 +56,9 @@ import {FilterQuestions} from "../assets/filterQuestions";
 import {Geolocation} from "@ionic-native/geolocation";
 import {Deletes} from "../providers/deletes";
 import {SortScore} from "../assets/sortScore";
+import {AngularFireAuthModule} from "angularfire2/auth";
+import {AngularFireDatabaseModule} from "angularfire2/database";
+import {AngularFireModule} from "angularfire2";
 
 export const firebaseConfig = {
   apiKey: "AIzaSyA_MquO5E-MQKjnEdaEUC-fnEXENMjz6Ro",
@@ -98,7 +101,10 @@ export const deepLinkConfig: DeepLinkConfig = {
   ],
   imports: [
     BrowserModule,
-    IonicModule.forRoot(MyApp, {}, deepLinkConfig)
+    IonicModule.forRoot(MyApp, {}, deepLinkConfig),
+    AngularFireModule.initializeApp(firebaseConfig),
+    AngularFireDatabaseModule,
+    AngularFireAuthModule
   ],
   bootstrap: [IonicApp],
   entryComponents: [

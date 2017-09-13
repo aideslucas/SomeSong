@@ -5,12 +5,14 @@ import {Question} from "./question";
 import 'rxjs/add/operator/first'
 import {Observable} from "rxjs/Observable";
 import {Deletes} from "./deletes";
+import {AngularFireDatabase} from "angularfire2/database";
 
 @Injectable()
 export class Answer {
 
   constructor(private _user: User,
-              private _question: Question) {
+              private _question: Question,
+              private afDB: AngularFireDatabase) {
   }
 
   getLocalTime(time) {
@@ -38,19 +40,8 @@ export class Answer {
     return num
   }
 
-  getAnswerDetails(answerID: string)
-  {
-    return Observable.create(function(observer: any) {
-      function value(snapshot) {
-        observer.next(snapshot.val());
-      }
-
-      firebase.database().ref('/answers/' + answerID).on('value', value);
-
-      return function() {
-        firebase.database().ref('/answers/' + answerID).off('value', value);
-      }
-    });
+  getAnswerDetailsNew(answerID: string): Observable<any> {
+    return this.afDB.object('/answers/' + answerID);
   }
 
   updateAnswer(answer) {
@@ -84,7 +75,7 @@ export class Answer {
     });
 
 
-    this._question.getQuestionDetails(questionID).first().subscribe(data => {
+    this._question.getQuestionDetailsNew(questionID).first().subscribe(data => {
       var question = data;
 
       if (question.answers == null)
@@ -97,8 +88,8 @@ export class Answer {
       this._question.updateQuestion(question);
     });
 
-    this._user.getUser(userID).then(data => {
-      var user = data.val();
+    this._user.getUserNew(userID).first().subscribe(data => {
+      var user = data;
 
       if (user.answers == null)
       {

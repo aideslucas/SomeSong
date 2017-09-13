@@ -21,25 +21,25 @@ export class SortQuestions {
   }
 
   transform(arr, args) {
-    if (arr === undefined) {
+    if (arr == null) {
       return null;
     }
 
     if (args == null) {
       return arr.sort((a, b) => {
-        if (a.value.correctAnswer != null &&
-          b.value.correctAnswer == null) {
+        if (a.correctAnswer != null &&
+          b.correctAnswer == null) {
           return 1;
         }
-        if (a.value.correctAnswer == null &&
-          b.value.correctAnswer != null) {
+        if (a.correctAnswer == null &&
+          b.correctAnswer != null) {
           return -1;
         }
-        if (this.getLocalTime(a.value.timeUTC) < this.getLocalTime(b.value.timeUTC)) {
+        if (this.getLocalTime(a.timeUTC) < this.getLocalTime(b.timeUTC)) {
           return 1;
         }
 
-        if (this.getLocalTime(a.value.timeUTC) > this.getLocalTime(b.value.timeUTC)) {
+        if (this.getLocalTime(a.timeUTC) > this.getLocalTime(b.timeUTC)) {
           return -1;
         }
         return 0;
@@ -52,28 +52,28 @@ export class SortQuestions {
       }
 
       else if (args == "Resolved") {
-        if (a.value.correctAnswer != null &&
-          b.value.correctAnswer == null) {
+        if (a.correctAnswer != null &&
+          b.correctAnswer == null) {
           return -1;
         }
-        if (a.value.correctAnswer == null &&
-          b.value.correctAnswer != null) {
+        if (a.correctAnswer == null &&
+          b.correctAnswer != null) {
           return 1;
         }
       }
 
       else if (args == "Answers") {
-        if (a.value.answers != null &&
-          b.value.answers == null) {
+        if (a.answers != null &&
+          b.answers == null) {
           return -1;
         }
-        if (a.value.answers == null &&
-          b.value.answers != null) {
+        if (a.answers == null &&
+          b.answers != null) {
           return 1;
         }
-        if (a.value.answers != null &&
-          b.value.answers != null) {
-          if (Object.keys(a.value.answers).length > Object.keys(b.value.answers).length) {
+        if (a.answers != null &&
+          b.answers != null) {
+          if (Object.keys(a.answers).length > Object.keys(b.answers).length) {
             return -1;
           }
           else {
@@ -83,18 +83,18 @@ export class SortQuestions {
       }
 
       else if (args == "Recent") {
-        if (this.getLocalTime(a.value.timeUTC) < this.getLocalTime(b.value.timeUTC)) {
+        if (this.getLocalTime(a.timeUTC) < this.getLocalTime(b.timeUTC)) {
           return 1;
         }
 
-        if (this.getLocalTime(a.value.timeUTC) > this.getLocalTime(b.value.timeUTC)) {
+        if (this.getLocalTime(a.timeUTC) > this.getLocalTime(b.timeUTC)) {
           return -1;
         }
       }
 
       else {
         //TODO: Location
-        return args[a.key] - args[b.key];
+        return args[a.$key] - args[b.$key];
       }
 
       return 0;

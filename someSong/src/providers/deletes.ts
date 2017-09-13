@@ -36,11 +36,11 @@ export class Deletes {
     let userID = question.user.userID ? question.user.userID : question.user;
     firebase.database().ref('/users/' + userID + '/questions/' + question.questionID).set(null);
 
-    this._question.getQuestionAnswers(question.questionID).once('value').then(questionAnswer => {
+    this._question.getQuestionAnswersNew(question.questionID).first().subscribe(questionAnswer => {
       if (questionAnswer) {
-        for (let ansKey of Object.keys(questionAnswer.val()))
+        for (let ansKey of Object.keys(questionAnswer))
         {
-          this._answer.getAnswerDetails(ansKey).first().subscribe((answerDetail) => {
+          this._answer.getAnswerDetailsNew(ansKey).first().subscribe((answerDetail) => {
             if (answerDetail) {
               this.deleteAnswer(answerDetail);
             }

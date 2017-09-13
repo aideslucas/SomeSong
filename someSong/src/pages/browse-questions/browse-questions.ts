@@ -7,6 +7,7 @@ import {User} from "../../providers/user";
 import {AskQuestionPage} from "../ask-question/ask-question";
 import {Geolocation} from "@ionic-native/geolocation";
 import DictionaryHelpFunctions from "../../assets/dictionaryHelpFunctions";
+import {Auth} from "../../providers/auth";
 
 @Component({
   selector: 'page-browse-questions',
@@ -27,11 +28,14 @@ export class BrowseQuestionsPage {
     selectedTitle: ""
   };
 
-  questions: { [id: string]: any } = {};
+  questions: any;
+
   questionLoading = true;
 
   orderBy: any = "Recent";
   currentLocation: any;
+
+  subscriptions = [];
 
   constructor(public navCtrl: NavController,
               private params: NavParams,
@@ -39,7 +43,8 @@ export class BrowseQuestionsPage {
               public alertCtrl: AlertController,
               private geolocation: Geolocation,
               private _user: User,
-              private _question: Question) {
+              private _question: Question,
+              private _auth: Auth) {
 
     let paramsLang = this.params.get("language");
     if (paramsLang != null) {
@@ -51,37 +56,34 @@ export class BrowseQuestionsPage {
       this.selectedFilters.selectedGenres[paramsGenre.key] = paramsGenre.value;
     }
 
-    this._user.currentUser.first().subscribe(data => {
+    this.subscriptions.push(this._user.CurrentUser.subscribe(data => {
       if (DictionaryHelpFunctions.isEmpty(this.selectedFilters.selectedLanguages))
         this.selectedFilters.selectedLanguages = data.languages;
       if (DictionaryHelpFunctions.isEmpty(this.selectedFilters.selectedGenres))
         this.selectedFilters.selectedGenres = data.genres;
-    });
+    }));
 
-    this.questionLoading = false;
-
-    this._question.getAllQuestions().on('child_added', question => {
-      this._question.getQuestionDetails(question.key).subscribe((questionDetail) => {
-        if (questionDetail) {
-          this.questions[question.key] = questionDetail;
-          this.distances[question.key] = this.calculateDistance(questionDetail.coordinates);
-        }
+    this.questions = this._question.getQuestions();
+    this.subscriptions.push(this.questions.subscribe(questions => {
+      questions.forEach(question => {
+        this.subscriptions.push(this._question.getQuestionDetailsNew(question.$key).subscribe(details => {
+          this.distances[question.$key] = this.calculateDistance(details.coordinates);
+        }));
       });
-    });
-
-    this._question.getAllQuestions().on('child_removed', question => {
-      delete this.questions[question.key];
-      delete  this.distances[question.key];
-    });
+    }));
 
     this.getLocation();
+  }
+
+  ionViewWillUnload() {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   getLocation() {
     this.geolocation.getCurrentPosition({enableHighAccuracy: true, timeout: 2000}).then((data) => {
       this.currentLocation = data.coords;
-      for (let quest of Object.keys(this.questions)) {
-        this.distances[quest] = this.calculateDistance(this.questions[quest].coordinates);
+      for (let quest of this.questions) {
+        this.distances[quest.$key] = this.calculateDistance(quest.coordinates);
       }
     });
   }
@@ -95,6 +97,7 @@ export class BrowseQuestionsPage {
 
     filterModal.onDidDismiss((data) => {
       this.selectedFilters = data;
+      this.selectedFilters.selectedLocation.dist = this.distances;
     });
 
     filterModal.present();
@@ -113,11 +116,6 @@ export class BrowseQuestionsPage {
     let orderAlert = this.alertCtrl.create({
       title: 'Select Order',
       inputs: [{
-        type: "radio",
-        label: "Friends First",
-        value: "Friends",
-        checked: this.orderBy == "Friends"
-      }, {
         type: "radio",
         label: "Resolved First",
         value: "Resolved",
@@ -168,9 +166,9 @@ export class BrowseQuestionsPage {
     if (questionCoords && this.currentLocation) {
       var p = 0.017453292519943295;    // Math.PI / 180
       var c = Math.cos;
-      var a = 0.5 - c((this.currentLocation.latitude - questionCoords.latitude) * p)/2 +
+      var a = 0.5 - c((this.currentLocation.latitude - questionCoords.latitude) * p) / 2 +
         c(questionCoords.latitude * p) * c(this.currentLocation.latitude * p) *
-        (1 - c((this.currentLocation.longitude - questionCoords.longitude) * p))/2;
+        (1 - c((this.currentLocation.longitude - questionCoords.longitude) * p)) / 2;
 
       return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
     }

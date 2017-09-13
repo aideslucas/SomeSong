@@ -23,7 +23,7 @@
     <ion-list *ngIf="songGenres" no-lines no-padding>
       <ion-list-header>
         Your Songs Genres
-        <button type="button" ion-button item-right (tap)="editRecordingGenres()">
+        <button type="button" ion-button item-right (click)="editRecordingGenres()">
           <ion-icon name="build"></ion-icon>
         </button>
       </ion-list-header>
@@ -37,7 +37,7 @@
     <ion-list *ngIf="songLanguages" no-lines no-padding>
       <ion-list-header>
         Your Songs Languages
-        <button type="button" ion-button item-right (tap)="editRecordingLanguages()">
+        <button type="button" ion-button item-right (click)="editRecordingLanguages()">
           <ion-icon name="build"></ion-icon>
         </button>
       </ion-list-header>
@@ -49,7 +49,7 @@
     </ion-list>
 
     <ion-footer>
-      <button type="button" ion-button icon-only (tap)="playRecording()" id="play-stop" class="footer-buttons">
+      <button type="button" ion-button icon-only (click)="playRecording()" id="play-stop" class="footer-buttons">
         <ion-icon name="play" *ngIf="!playing">&nbsp;Play</ion-icon>
         <ion-icon name="pause" *ngIf="playing">&nbsp;Pause</ion-icon>
       </button>

@@ -18,7 +18,7 @@
         "@angular/http": "4.0.0",
         "@angular/platform-browser": "4.0.0",
         "@angular/platform-browser-dynamic": "4.0.0",
-        "@ionic-native/camera": "^3.12.1",
+        "@ionic-native/camera": "^4.1.0",
         "@ionic-native/core": "^3.6.1",
         "@ionic-native/deeplinks": "^3.10.3",
         "@ionic-native/facebook": "^3.4.4",
@@ -27,7 +27,6 @@
         "@ionic-native/file-path": "^3.5.0",
         "@ionic-native/geolocation": "^3.10.3",
         "@ionic-native/media": "^3.5.0",
-        "@ionic-native/media-capture": "^3.5.0",
         "@ionic-native/push": "^3.10.2",
         "@ionic-native/splash-screen": "3.4.2",
         "@ionic-native/status-bar": "3.4.2",
@@ -37,7 +36,6 @@
         "cordova-plugin-camera": "^2.4.1",
         "cordova-plugin-compat": "^1.1.0",
         "cordova-plugin-console": "^1.0.5",
-        "cordova-plugin-crosswalk-webview": "^2.3.0",
         "cordova-plugin-device": "^1.1.4",
         "cordova-plugin-facebook4": "^1.7.4",
         "cordova-plugin-file": "^4.0.0",
@@ -46,7 +44,7 @@
         "cordova-plugin-splashscreen": "^4.0.3",
         "cordova-plugin-statusbar": "^2.2.1",
         "cordova-plugin-whitelist": "^1.3.1",
-        "firebase": "^3.7.5",
+        "firebase": "^4.2.0",
         "ionic-angular": "3.0.0",
         "ionic-material": "^0.4.1",
         "ionic-plugin-deeplinks": "^1.0.15",
@@ -60,8 +58,9 @@
     },
     "devDependencies": {
         "@ionic/app-scripts": "1.3.0",
-        "@ionic/cli-plugin-cordova": "1.4.0",
-        "@ionic/cli-plugin-ionic-angular": "1.3.1",
+        "@ionic/cli-plugin-cordova": "1.6.1",
+        "@ionic/cli-plugin-ionic-angular": "1.4.1",
+        "ionic": "3.7.0",
         "typescript": "~2.2.1"
     },
     "cordovaPlugins": [
@@ -76,7 +75,6 @@
     "description": "SomeSong: The Sound of the People",
     "cordova": {
         "plugins": {
-            "Media": {},
             "cordova-plugin-console": {},
             "cordova-plugin-device": {},
             "cordova-plugin-facebook4": {
@@ -110,17 +108,10 @@
                 "DEEPLINK_5_HOST": " "
             },
             "cordova-plugin-geolocation": {},
-            "cordova-plugin-camera": {},
             "cordova-plugin-compat": {},
             "cordova-plugin-file": {},
-            "cordova-plugin-media": {}
-            "cordova-plugin-crosswalk-webview": {
-                "XWALK_VERSION": "23+",
-                "XWALK_LITEVERSION": "xwalk_core_library_canary:17+",
-                "XWALK_COMMANDLINE": "--disable-pull-to-refresh-effect",
-                "XWALK_MODE": "embedded",
-                "XWALK_MULTIPLEAPK": "true"
-            }
+            "cordova-plugin-media": {},
+            "cordova-plugin-camera": {}
         },
         "platforms": [
             "android"

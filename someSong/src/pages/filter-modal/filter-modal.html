@@ -1,7 +1,7 @@
 <ion-header>
   <ion-navbar>
     <ion-buttons end>
-      <button ion-button (tap)="cancel()"><ion-icon name="close"></ion-icon></button>
+      <button ion-button (click)="cancel()"><ion-icon name="close"></ion-icon></button>
     </ion-buttons>
     <ion-title>
       Filter By
@@ -12,27 +12,22 @@
 <ion-content>
   <ion-list>
     <ion-item no-lines>
-      <button ion-item (tap)="selectAnswers()">Answers</button>
+      <button ion-item (click)="selectAnswers()">Answers</button>
       <ion-option>{{selectedFilters?.selectedAnswers}}</ion-option>
     </ion-item>
     <hr>
     <ion-item no-lines>
-      <button ion-item (tap)="selectGenres()">Genres</button>
+      <button ion-item (click)="selectGenres()">Genres</button>
       <ion-option *ngFor="let genre of selectedFilters.selectedGenres | keyValueFilter">{{genre.value}};</ion-option>
     </ion-item>
     <hr>
     <ion-item no-lines>
-      <button ion-item (tap)="selectLanguages()">Languages</button>
+      <button ion-item (click)="selectLanguages()">Languages</button>
       <ion-option *ngFor="let language of selectedFilters.selectedLanguages | keyValueFilter">{{language.value}};</ion-option>
     </ion-item>
     <hr>
     <ion-item no-lines>
-      <button ion-item (tap)="selectFriends()">Friends</button>
-      <ion-option>{{selectedFilters?.selectedFriends}}</ion-option>
-    </ion-item>
-    <hr>
-    <ion-item no-lines>
-      <button ion-item (tap)="selectLocation()">Location</button>
+      <button ion-item (click)="selectLocation()">Location</button>
       <ion-option>{{selectedFilters.selectedLocation.max}}</ion-option>
     </ion-item>
   </ion-list>
@@ -40,10 +35,10 @@
 
 <ion-footer>
   <ion-buttons>
-    <button ion-button (tap)="clear()">
+    <button ion-button (click)="clear()">
       <ion-icon name="trash">&nbsp; Clear</ion-icon>
     </button>
-    <button ion-button (tap)="apply()">
+    <button ion-button (click)="apply()">
       <ion-icon name="checkmark">&nbsp; Apply</ion-icon>
     </button>
   </ion-buttons>

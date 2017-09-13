@@ -1,8 +1,6 @@
 import { Component } from '@angular/core';
-import { LoadingController, NavController, ModalController, AlertController, ActionSheetController} from 'ionic-angular';
-
+import { NavController, ModalController, AlertController} from 'ionic-angular';
 import {Auth} from "../../providers/auth";
-
 import {LoginPage} from "../login/login";
 import {User} from "../../providers/user";
 import {GenreSelectPage} from "../genre-select/genre-select";
@@ -11,44 +9,37 @@ import {Score} from "../../providers/score";
 import {LeaderboardPage} from "../leader-board/leader-board";
 import {Avatar} from "../../providers/avatar";
 
-
-
 @Component({
   selector: 'page-profile',
   templateUrl: 'profile.html'
 })
 export class ProfilePage {
   currentUser: any;
-  userSubscription: any;
-  pointsSubscription: any;
+  subscriptions = [];
   userPoints: any;
   userPosition: any;
 
   constructor(public navCtrl: NavController,
               public modalCtrl: ModalController,
               public alertCtrl: AlertController,
-              public actionSheeCtrl: ActionSheetController,
-              public loadingCtrl: LoadingController,
               private _auth: Auth,
               private _score: Score,
               private _user: User,
               private _avatar: Avatar)
-
   {
-    this.userSubscription = this._user.currentUser.subscribe((data) => {
+    this.subscriptions.push(this._user.currentUser.subscribe((data) => {
       this.currentUser = data;
-      this.pointsSubscription = this._score.getScoreDetails(this.currentUser.userID).subscribe((scoreDetail) => {
+      this.subscriptions.push(this._score.getScoreDetails(this.currentUser.userID).subscribe((scoreDetail) => {
         this.userPoints = scoreDetail;
         this._score.getPosition(data.userID).then(data => {
           this.userPosition = data;
         });
-      });
-    });
+      }));
+    }));
   }
 
   ionViewWillUnload() {
-    this.pointsSubscription.unsubscribe();
-    this.userSubscription.unsubscribe();
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   goToLanguageSelect(){
@@ -112,13 +103,11 @@ export class ProfilePage {
   }
 
   logout() {
-    this.pointsSubscription.unsubscribe();
-    this.userSubscription.unsubscribe();
     this._user.logOut();
     this._auth.signOut();
     this.navCtrl.setRoot(LoginPage);
   }
-  
+
   goToLeaderboard(){
     this.navCtrl.push(LeaderboardPage);
   }

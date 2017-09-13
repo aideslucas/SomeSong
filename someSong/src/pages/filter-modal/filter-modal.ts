@@ -4,6 +4,7 @@ import {LanguageSelectPage} from "../language-select/language-select";
 import {GenreSelectPage} from "../genre-select/genre-select";
 import DictionaryHelpFunctions from "../../assets/dictionaryHelpFunctions";
 import {User} from "../../providers/user";
+import {Auth} from "../../providers/auth";
 
 @Component({
   selector: 'page-filter-modal',
@@ -18,7 +19,8 @@ export class FilterModalPage {
               private navParams: NavParams,
               private modalCtrl: ModalController,
               private alertCtrl: AlertController,
-              private user: User) {
+              private user: User,
+              private auth: Auth) {
 
     this.selectedFilters = JSON.parse(JSON.stringify(this.navParams.data));
   }
@@ -112,39 +114,6 @@ export class FilterModalPage {
     answersAlert.present();
   }
 
-  selectFriends() {
-    let friendsAlert = this.alertCtrl.create({
-      title: 'Select Friends',
-      inputs: [{
-        type: "radio",
-        label: "Only Friends Questions",
-        value: "Friends",
-        checked: this.selectedFilters.selectedFriends == "Friends"
-      },
-        {
-          type: "radio",
-          label: "All Questions",
-          value: "All",
-          checked: this.selectedFilters.selectedFriends == "All"
-        }
-      ],
-      buttons: [{
-        text: 'Cancel',
-        role: 'cancel',
-        handler: data => {
-        }
-      },
-        {
-          text: 'Apply',
-          handler: data => {
-            this.selectedFilters.selectedFriends = data;
-          }
-        }]
-    });
-
-    friendsAlert.present();
-  }
-
   selectGenres() {
     let genresModal = this.modalCtrl.create(GenreSelectPage, {selectedGenres: this.selectedFilters.selectedGenres});
 
@@ -178,7 +147,7 @@ export class FilterModalPage {
       selectedTitle: ""
     };
 
-    this.user.currentUser.first().subscribe(data => {
+    this.user.CurrentUser.first().subscribe(data => {
       this.defaultFilters.selectedLanguages = data.languages;
       this.defaultFilters.selectedGenres = data.genres;
     });

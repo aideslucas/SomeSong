@@ -14,6 +14,8 @@ import DictionaryHelpFunctions from "../../assets/dictionaryHelpFunctions";
 import {Push, PushObject, PushOptions} from '@ionic-native/push'
 import {LeaderboardPage} from "../leader-board/leader-board";
 import {Deletes} from "../../providers/deletes";
+import {Auth} from "../../providers/auth";
+import {LoginPage} from "../login/login";
 
 @Component({
   selector: 'page-home',
@@ -26,80 +28,50 @@ export class HomePage {
   user: any;
   userQuestions: { [id: string]: any } = {};
   userAnswers = {};
-  userSubscription: any;
+
+  questions: any;
+  questionDetails: any;
+  subscriptions = [];
+  answers: any;
+  answerDetails: any;
+  answerQuestionDetails: any;
 
   constructor(public navCtrl: NavController,
-              private ref: ChangeDetectorRef,
               private alertCtrl: AlertController,
+              private _auth: Auth,
               private _user: User,
               private _answer: Answer,
               private _question: Question,
               private _deletes: Deletes,
-              private _push: Push,
-              private loadCtrl: LoadingController) {
-    if (this._user.currentUser) {
-      this.userSubscription = this._user.currentUser.subscribe((data) => {
+              private _push: Push) {
+    if (this._auth.authenticatedUser != null) {
+      this.subscriptions.push(this._user.CurrentUser.subscribe(data => {
         this.user = data;
         this.initPushNotifications();
-        if (!this.user.questions) {
-          this.questionLoading = false;
-        }
-        else {
-          let numQuestions = Object.keys(this.user.questions).length;
-          let loadedQuestions = 0;
 
-          this._user.getUserQuestions(this.user.userID).on('child_added', userQuestion => {
-            this._question.getQuestionDetails(userQuestion.key).subscribe((questionDetail) => {
-              if (questionDetail) {
-                this.userQuestions[userQuestion.key] = questionDetail;
-              }
-              loadedQuestions++;
-
-              if (loadedQuestions == numQuestions)
-                this.questionLoading = false;
-            });
+        this.questions = this._user.getUserQuestionsNew(this.user.userID);
+        this.questionDetails = {};
+        this.subscriptions.push(this.questions.subscribe(questions => {
+          questions.forEach(question => {
+            this.questionDetails[question.$key] = this._question.getQuestionDetailsNew(question.$key);
           });
+        }));
 
-          this._user.getUserQuestions(this.user.userID).on('child_removed', userQuestion => {
-            delete this.userQuestions[userQuestion.key];
+        this.answers = this._user.getUserAnswersNew(this.user.userID);
+        this.answerDetails = {};
+        this.answerQuestionDetails = {};
+        this.subscriptions.push(this.answers.subscribe(answers => {
+          answers.forEach(answer => {
+            this.answerDetails[answer.$key] = this._answer.getAnswerDetailsNew(answer.$key);
+
+
+            this.subscriptions.push(this.answerDetails[answer.$key].subscribe(answerDetails => {
+              this.answerQuestionDetails[answer.$key] = this._question.getQuestionDetailsNew(answerDetails.question);
+            }));
           });
-        }
+        }));
 
-
-        if (!this.user.answers) {
-          this.answerLoading = false;
-        }
-
-        else {
-          let numAnswers = Object.keys(this.user.answers).length;
-          let loadedAnswers = 0;
-
-          this._user.getUserAnswers(this.user.userID).on('child_added', userAnswer => {
-            this._answer.getAnswerDetails(userAnswer.key).subscribe((answerDetail) => {
-              if (answerDetail) {
-                this.userAnswers[userAnswer.key] = answerDetail;
-                this._question.getQuestionDetails(answerDetail.question).subscribe((questionDetail) => {
-                  if (questionDetail) {
-                    this.userAnswers[userAnswer.key].question = questionDetail;
-                  }
-
-                });
-              }
-
-              loadedAnswers++;
-
-              if (loadedAnswers == numAnswers)
-                this.answerLoading = false;
-            });
-          });
-
-          this._user.getUserAnswers(this.user.userID).on('child_removed', userAnswer => {
-            if (userAnswer) {
-              delete this.userAnswers[userAnswer.key];
-            }
-          });
-        }
-      });
+      }));
     }
   }
 
@@ -218,12 +190,10 @@ export class HomePage {
   }
 
   ionViewWillUnload() {
-    if (this.userSubscription) {
-      this.userSubscription.unsubscribe();
-    }
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  goToLeaderboard(){
+  goToLeaderboard() {
     this.navCtrl.push(LeaderboardPage);
   }
 }

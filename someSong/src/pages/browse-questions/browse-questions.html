@@ -9,10 +9,10 @@
   </ion-navbar>
 
   <ion-toolbar>
-    <button ion-button class="toolbar-buttons" (tap)="order()">
+    <button ion-button class="toolbar-buttons" (click)="order()">
       <ion-icon name="reorder">&nbsp;Order by</ion-icon>
     </button>
-    <button ion-button class="toolbar-buttons" (tap)="filter()">
+    <button ion-button class="toolbar-buttons" (click)="filter()">
       <ion-icon name="funnel">&nbsp;Filter by</ion-icon>
     </button>
     <ion-searchbar
@@ -25,55 +25,57 @@
 </ion-header>
 
 <ion-content>
-<!--  <ion-refresher (ionRefresh)="doRefresh($event)">
-    <ion-refresher-content pullingIcon="arrow-dropdown"
-                           pullingText="Pull to refresh"
-                           refreshingSpinner="circles"
-                           refreshingText="Refreshing...">
-    </ion-refresher-content>
-  </ion-refresher>-->
-
   <ion-card class="scrollableContent">
     <ion-scroll scrollY="true">
-      <ion-list no-lines no-padding *ngIf="!questionLoading && !isEmpty(questions)">
-        <button ion-item
-                *ngFor="let question of questions | keyValueFilter | filterQuestions:selectedFilters | sortQuestions:orderBy"
-                (tap)="goToQuestion(question.key)">
-          {{question.value.title}}
-          <ion-icon name="checkmark-circle" item-left color="secondary" *ngIf="question.value.correctAnswer"></ion-icon>
-          <ion-icon name="help-circle" item-left color="dark" *ngIf="!question.value.correctAnswer"></ion-icon>
+      <ion-list no-lines no-padding *ngIf="questions | async; else loadingQuestions; let questionsDetails">
+        <span *ngIf="questionsDetails.length > 0; else noQuestions">
+          <span *ngIf="(questionsDetails | filterQuestions:selectedFilters).length > 0; else noFilteredQuestions">
+            <button ion-item
+                    *ngFor="let question of questionsDetails | filterQuestions:selectedFilters | sortQuestions:orderBy"
+                    (click)="goToQuestion(question.$key)">
+              {{question.title}}
+              <ion-icon name="checkmark-circle" item-left color="secondary" *ngIf="question.correctAnswer"></ion-icon>
+              <ion-icon name="help-circle" item-left color="dark" *ngIf="!question.correctAnswer"></ion-icon>
 
-          <ion-icon name="ios-chatbubbles-outline" *ngIf="question.value.answers" item-right class="right-icons">
-            &nbsp;{{(question.value.answers | keyValueFilter)?.length}}
-          </ion-icon>
-        </button>
+              <ion-icon name="ios-chatbubbles-outline" *ngIf="question.answers" item-right class="right-icons">
+                &nbsp;{{(question.answers | keyValueFilter)?.length}}
+              </ion-icon>
+            </button>
+          </span>
+        </span>
       </ion-list>
-      <div *ngIf="isEmpty(questions) && !questionLoading" class="contentCentered">
-        <div>
-          No questions asked yet. <br>
-          Press the
-          <ion-icon name="help-circle"></ion-icon>
-          button to ask a question.
+      <ng-template #noQuestions>
+        <div class="contentCentered">
+          <div>
+            No questions asked yet. <br>
+            Press the
+            <ion-icon name="help-circle"></ion-icon>
+            button to ask a question.
+          </div>
         </div>
-      </div>
-      <div *ngIf="(questions | keyValueFilter | filterQuestions:selectedFilters).length == 0 && !questionLoading"
-           class="contentCentered">
-        <div>
-          No questions found for the selected filters. <br>
-          Press the
-          <ion-icon name="funnel"></ion-icon>
-          button to change the filter, <br>
-          Or change the
-          <ion-icon name="search"></ion-icon>
-          title filter.
+      </ng-template>
+      <ng-template #noFilteredQuestions>
+        <div class="contentCentered">
+          <div>
+            No questions found for the selected filters. <br>
+            Press the
+            <ion-icon name="funnel"></ion-icon>
+            button to change the filter, <br>
+            Or change the
+            <ion-icon name="search"></ion-icon>
+            title filter.
+          </div>
         </div>
-      </div>
-      <div *ngIf="questionLoading" class="contentCentered">
-        <div class="loader"></div>
-      </div>
+      </ng-template>
+      <ng-template #loadingQuestions>
+        <div *ngIf="questionLoading" class="contentCentered">
+          <div class="loader"></div>
+        </div>
+      </ng-template>
+
     </ion-scroll>
     <ion-buttons end class="footer-button">
-      <button (tap)="askAQuestion()" round ion-button color="light">
+      <button (click)="askAQuestion()" round ion-button color="light">
         <ion-icon name="md-help"></ion-icon>
       </button>
     </ion-buttons>

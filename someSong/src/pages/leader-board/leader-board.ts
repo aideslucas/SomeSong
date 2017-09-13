@@ -29,11 +29,11 @@ export class LeaderboardPage {
     let loaded = 0;
 
     this._score.getAllScores().orderByValue().on('child_added', (data) => {
-      this._user.getUser(data.key).then(user => {
+      this._user.getUserNew(data.key).first().subscribe(user => {
 
           if (user) {
             this.scores[data.key] = {
-              'user': user.val().displayName,
+              'user': user.displayName,
               'score': data.val()
             };
           } else {

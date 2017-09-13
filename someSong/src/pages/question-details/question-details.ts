@@ -11,6 +11,7 @@ import {Notification} from "../../providers/notification";
 import {Score} from "../../providers/score";
 import {Deletes} from "../../providers/deletes";
 import {BrowseQuestionsPage} from "../browse-questions/browse-questions";
+import {Auth} from "../../providers/auth";
 
 declare var Media: any;
 
@@ -29,10 +30,15 @@ export class QuestionDetailsPage {
   answerLoading = true;
   questionTime: any;
 
+  answers: any;
+  answerDetails: any;
+  answerUserDetails: any;
+
+  subscriptions = [];
+
   constructor(public navCtrl: NavController,
               private alertCtrl: AlertController,
               public navParams: NavParams,
-              private _media: MediaPlugin,
               private _question: Question,
               private _record: Record,
               private _user: User,
@@ -41,63 +47,52 @@ export class QuestionDetailsPage {
               private _deletes: Deletes,
               private _notification: Notification,
               private _platform: Platform) {
-    this._user.currentUser.subscribe(data => {
-      this.currentUser = data;
-    });
+
+      this.subscriptions.push(this._user.CurrentUser.subscribe(data => {
+        this.currentUser = data;
+      }));
+
 
     var paramsData = navParams.get('questionID') ? navParams.get('questionID') : navParams.data;
 
-    this.questionSubs = this._question.getQuestionDetails(paramsData).subscribe(question => {
+    this.subscriptions.push(this._question.getQuestionDetailsNew(paramsData).subscribe(question => {
       if (question) {
         this.question = question;
         this.questionTime = this._answer.getLocalTime(this.question.timeUTC);
-      }
 
-      if (this._platform.is('mobileweb') || this._platform.is('core')) {
-        console.log("Running in browser.. nothing to play");
-      }
-      else {
-        this._record.getRecordURL(this.question.record).then(url => {
-          this.question.file = new Media(url, () => {
-          }, (e) => {
-            alert("failed to create the recording file: " + JSON.stringify(e));
-          }, (mediaStatus) => {
-            if (mediaStatus === Media.MEDIA_STOPPED) {
-              this.playing = false;
-            }
-          });
-        });
-      }
-
-      this._user.getUser(this.question.user).then(user => {
-        this.questionUser = user.val();
-      });
-
-      if (!this.question.answers) {
-        this.answerLoading = false;
-      }
-
-      this._question.getQuestionAnswers(this.question.questionID).on('child_added', questionAnswer => {
-        if (questionAnswer) {
-          this._answer.getAnswerDetails(questionAnswer.key).subscribe((answerDetail) => {
-            if (answerDetail) {
-              this.questionAnswers[questionAnswer.key] = answerDetail;
-              this._user.getUser(answerDetail.user).then((userDetail) => {
-                this.questionAnswers[questionAnswer.key].user = userDetail.val();
-              });
-              this.questionAnswers[questionAnswer.key].time = this._answer.getLocalTime(this.questionAnswers[questionAnswer.key].timeUTC);
-            }
-            this.answerLoading = false;
+        if (this._platform.is('mobileweb') || this._platform.is('core')) {
+          console.log("Running in browser.. nothing to play");
+        }
+        else {
+          this._record.getRecordURL(this.question.record).then(url => {
+            this.question.file = new Media(url, () => {
+            }, (e) => {
+              alert("failed to create the recording file: " + JSON.stringify(e));
+            }, (mediaStatus) => {
+              if (mediaStatus === Media.MEDIA_STOPPED) {
+                this.playing = false;
+              }
+            });
           });
         }
-      });
 
-      this._question.getQuestionAnswers(this.question.questionID).on('child_removed', questionAnswer => {
-        if (questionAnswer) {
-          delete this.questionAnswers[questionAnswer.key];
-        }
-      });
-    });
+        this.subscriptions.push(this._user.getUserNew(this.question.user).subscribe(user => {
+          this.questionUser = user;
+        }));
+
+        this.answers = this._question.getQuestionAnswersNew(this.question.questionID);
+        this.answerUserDetails = {};
+        this.answerDetails = {};
+        this.subscriptions.push(this.answers.subscribe(answers => {
+          answers.forEach(answer => {
+            this.answerDetails[answer.$key] = this._answer.getAnswerDetailsNew(answer.$key);
+            this.subscriptions.push(this.answerDetails[answer.$key].subscribe(details => {
+              this.answerUserDetails[answer.$key] = this._user.getUserNew(details.user);
+            }));
+          });
+        }));
+      }
+    }));
   }
 
 
@@ -129,7 +124,7 @@ export class QuestionDetailsPage {
   }
 
   canVote(answer) {
-    if (this.currentUser.votes != null) {
+    if (this.currentUser.votes != null && answer != null) {
       if (this.currentUser.votes[answer.answerID] != null) {
         return this.currentUser.votes[answer.answerID];
       }
@@ -155,10 +150,15 @@ export class QuestionDetailsPage {
     this._answer.updateAnswer(answer);
   }
 
+  parseTime(timeUTC): string {
+    return this._answer.getLocalTime(timeUTC);
+  }
+
   resolve(item, answer) {
     item.close();
     this.question.correctAnswer = answer.answerID;
-    this._question.updateQuestion(this.question);
+    let updatedQuestion = JSON.parse(JSON.stringify(this.question));
+    this._question.updateQuestion(updatedQuestion);
     this._score.updateScore(2, answer.user.userID);
 
     this._notification.writeNewNotification(answer.user, 1, this.question, answer);
@@ -180,7 +180,7 @@ export class QuestionDetailsPage {
     this.answer = '';
     this._score.updateScore(1, this.currentUser.userID);
     if (this.currentUser.userID != this.question.user) {
-      this._answer.getAnswerDetails(ansKey).first().subscribe((answer) => {
+      this._answer.getAnswerDetailsNew(ansKey).first().subscribe((answer) => {
         this._notification.writeNewNotification(this.question.user, 0, this.question, answer);
       });
     }
@@ -241,6 +241,6 @@ export class QuestionDetailsPage {
   }
 
   ionViewWillUnload() {
-    this.questionSubs.unsubscribe();
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 }

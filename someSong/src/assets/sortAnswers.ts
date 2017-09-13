@@ -20,60 +20,16 @@ export class SortAnswers {
   }
 
   transform(arr, args) {
-    if (arr === undefined) {
+    if (arr == null) {
       return null;
     }
 
+    if (args == null) {return arr;}
+
     return arr.sort((a, b) => {
-      let aCorrect = a.value.question.correctAnswer;
-      let bCorrect = b.value.question.correctAnswer;
-
-      if (args) {
-        aCorrect = args;
-        bCorrect = args;
-      }
-
-        if (aCorrect != null &&
-          bCorrect == null) {
-          return 1;
-        }
-
-        if (aCorrect == null &&
-          bCorrect != null) {
-          return -1;
-        }
-
-
-        if (aCorrect != null &&
-          bCorrect != null) {
-          if (aCorrect == a.key &&
-            bCorrect != b.key) {
-            return -1;
-          }
-          if (aCorrect !== a.key &&
-            bCorrect == b.key) {
-            return 1;
-          }
-        }
-
-        if (a.value.votes < b.value.votes) {
-          return 1;
-        }
-
-        if (a.value.votes > b.value.votes) {
-          return -1;
-        }
-
-        if (this.getLocalTime(a.value.timeUTC) < this.getLocalTime(b.value.timeUTC)) {
-          return 1;
-        }
-
-        if (this.getLocalTime(a.value.timeUTC) > this.getLocalTime(b.value.timeUTC)) {
-          return -1;
-        }
-
-        return 0;
-      }
-    );
+      if (a.$key == args) return -1;
+      if (b.$key == args) return 1;
+      return 0;
+    });
   }
 }

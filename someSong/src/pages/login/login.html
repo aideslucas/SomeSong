@@ -26,12 +26,12 @@
         Log In &nbsp;<ion-icon name="log-in"></ion-icon>
       </button>
 
-      <button ion-button block type="button" class="register-btn" (tap)="register()">
+      <button ion-button block type="button" class="register-btn" (click)="register()">
         Register &nbsp;<ion-icon name="create"></ion-icon>
       </button>
     </ion-row>
 
-    <button ion-button block class="facebook-btn" type="button" (tap)="loginWithFB()">
+    <button ion-button block class="facebook-btn" type="button" (click)="loginWithFB()">
       <ion-icon name="logo-facebook">&nbsp; Log In With Facebook</ion-icon>
     </button>
 
@@ -40,9 +40,3 @@
     </div>
   </form>
 </ion-content>
-
-<ion-footer>
-  <button ion-button block class="reset-password" (tap)="resetPassword()">Forgot My Password &nbsp;
-    <ion-icon name="help-circle"></ion-icon>
-  </button>
-</ion-footer>

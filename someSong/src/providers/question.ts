@@ -4,31 +4,23 @@ import firebase from 'firebase';
 import {Observable} from "rxjs/Observable";
 import {Score} from "./score";
 import {Answer} from "./answer";
+import {AngularFireDatabase} from "angularfire2/database";
 
 @Injectable()
 export class Question {
   private date: any = new Date();
 
   constructor(private _user: User,
-              private _score: Score) {
+              private _score: Score,
+              private afDB: AngularFireDatabase) {
   }
 
-  getAllQuestions() {
-    return firebase.database().ref('/questions/');
+  getQuestions() {
+    return this.afDB.list('/questions/');
   }
 
-  getQuestionDetails(questionID: string): Observable<any> {
-    return Observable.create(function (observer: any) {
-      function value(snapshot) {
-        observer.next(snapshot.val());
-      }
-
-      firebase.database().ref('/questions/' + questionID).on('value', value);
-
-      return function () {
-        firebase.database().ref('/questions/' + questionID).off('value', value);
-      }
-    });
+  getQuestionDetailsNew(questionID: string): Observable<any> {
+    return this.afDB.object('/questions/' + questionID);
   }
 
   getNewQuestionID() {
@@ -38,8 +30,8 @@ export class Question {
   writeNewQuestion(questionID: string, genres: {}, languages: {}, record: string, userID: string, title: string, cordinates: any) {
     var time = new Date();
 
-    this._user.getUser(userID).then(data => {
-      var user = data.val();
+    this._user.getUserNew(userID).first().subscribe(data => {
+      var user = data;
       if (user.questions == null) {
         user.questions = {};
       }
@@ -79,10 +71,10 @@ export class Question {
   }
 
   updateQuestion(question) {
-    return firebase.database().ref('/questions/' + question.questionID).set(question);
+    return this.afDB.object('/questions/' + question.questionID).set(question);
   }
 
-  getQuestionAnswers(questionID) {
-    return firebase.database().ref('/questions/' + questionID + '/answers/');
+  getQuestionAnswersNew(questionID) {
+    return this.afDB.list('/questions/' + questionID + '/answers/');
   }
 }

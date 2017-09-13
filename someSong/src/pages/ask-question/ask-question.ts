@@ -30,7 +30,6 @@ export class AskQuestionPage {
   constructor(public navCtrl: NavController,
               public file: File,
               private modalCtrl: ModalController,
-              private alert: Alert,
               public platform: Platform,
               private media: MediaPlugin) {
   }

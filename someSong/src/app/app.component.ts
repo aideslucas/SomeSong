@@ -10,7 +10,6 @@ import {HomePage} from "../pages/home/home";
 import {User} from "../providers/user";
 import {QuestionDetailsPage} from "../pages/question-details/question-details";
 import {AskQuestionPage} from "../pages/ask-question/ask-question";
-import {FacebookShare} from "../providers/facebook-share";
 
 @Component({
   templateUrl: 'app.html'
@@ -26,8 +25,7 @@ export class MyApp {
               public splashScreen: SplashScreen,
               public auth: Auth,
               public _user: User,
-              private deeplinks: Deeplinks,
-              private facebookShare: FacebookShare)
+              private deeplinks: Deeplinks)
   {
     let loading = this.loadingCtrl.create({
       content: 'Please Wait...'
@@ -49,13 +47,10 @@ export class MyApp {
         '/askQuestion': AskQuestionPage
       };
 
-      var authStateChanged = this.auth.authState.onAuthStateChanged(authUser => {
+      this.auth.authState.first().subscribe(authUser => {
         if (authUser != null) {
-          this._user.logIn(authUser.uid);
+          this._user.logIn();
 
-          this.facebookShare.inviteFriends().then((data) => {
-          }).catch((err) => {
-          });
           this.rootPage = HomePage;
 
           this.deeplinks.route(routes).subscribe(
@@ -69,7 +64,6 @@ export class MyApp {
           this.rootPage = LoginPage;
         }
 
-        authStateChanged();
         loading.dismiss();
       });
     });

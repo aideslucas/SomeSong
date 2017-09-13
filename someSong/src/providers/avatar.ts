@@ -1,30 +1,20 @@
 /**
  * Created by Sivan on 6/5/2017.
  */
-import {Camera, CameraOptions } from '@ionic-native/camera';
-import { Injectable } from '@angular/core';
-import {LoadingController, ActionSheetController, Platform, AlertController} from 'ionic-angular';
+import {Camera, CameraOptions} from '@ionic-native/camera';
+import {Injectable} from '@angular/core';
+import {LoadingController, ActionSheetController} from 'ionic-angular';
 import {User} from "./user";
 import * as firebase from 'firebase';
-import {File} from "@ionic-native/file";
 
 @Injectable()
 export class Avatar {
   currentUser: any;
-  private recordPath: string;
-  private userID: string;
-  private loading: any;
 
   constructor(public actionSheeCtrl: ActionSheetController,
               public loadingCtrl: LoadingController,
               private camera: Camera,
-              private _user: User,
-              private platform: Platform,
-              private file1: File,
-              private alertCtrl: AlertController) {
-    this._user.currentUser.subscribe((data) => {
-      this.currentUser = data;
-    });
+              private _user: User) {
   }
 
   openImageOptions() {
@@ -100,55 +90,56 @@ export class Avatar {
   }
 
   startUploading(file) {
-
-    let self = this;
-    let uid = self.currentUser.userID;
-    let progress: number = 0;
-    // display loader
+    this._user.currentUser.first().subscribe((data) => {
+      this.currentUser = data;
+      let self = this;
+      let uid = self.currentUser.userID;
+      let progress: number = 0;
+      // display loader
       let loader = this.loadingCtrl.create({
-      content: 'Uploading image..',
-    });
-
-    loader.present();
-     var
-     metadata = {
-     contentType: 'image/jpeg',
-     name: 'profile.jpeg',
-     cacheControl: 'no-cache',
-     };
-
-     var uploadTask = firebase.storage().ref().child('client-data/images/' + uid + '/profile.jpeg').put(file, metadata);
-    // Listen for state changes, errors, and completion of the upload.
-    uploadTask.on('state_changed',
-      function (snapshot) {
-        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-        progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      }, function (error) {
-        loader.dismiss().then(() => {
-          switch (error.name) {
-            case 'storage/unauthorized':
-              // User doesn't have permission to  access the object
-              break;
-
-            case 'storage/canceled':
-              // User canceled the upload
-              break;
-
-            case 'storage/unknown':
-              // Unknown error occurred, inspect error.serverResponse
-              break;
-          }
-        });
-      }, function () {
-     loader.dismiss().then(() => {
-     // Upload completed successfully, now we can get the download URL
-    var downloadURL = uploadTask.snapshot.downloadURL;
-       self.currentUser.image = downloadURL;
-       self._user.updateUser(self.currentUser);
-
-     });
+        content: 'Uploading image..',
       });
+
+      loader.present();
+      var
+        metadata = {
+          contentType: 'image/jpeg',
+          name: 'profile.jpeg',
+          cacheControl: 'no-cache',
+        };
+
+      var uploadTask = firebase.storage().ref().child('client-data/images/' + uid + '/profile.jpeg').put(file, metadata);
+      // Listen for state changes, errors, and completion of the upload.
+      uploadTask.on('state_changed',
+        function (snapshot : firebase.storage.UploadTaskSnapshot) {
+          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+          progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        }, function (error) {
+          loader.dismiss().then(() => {
+            switch (error.name) {
+              case 'storage/unauthorized':
+                // User doesn't have permission to  access the object
+                break;
+
+              case 'storage/canceled':
+                // User canceled the upload
+                break;
+
+              case 'storage/unknown':
+                // Unknown error occurred, inspect error.serverResponse
+                break;
+            }
+          });
+        });
+
+      uploadTask.then(()  => {
+        loader.dismiss().then(() => {
+          // Upload completed successfully, now we can get the download URL
+          var downloadURL = uploadTask.snapshot.downloadURL;
+          self.currentUser.image = downloadURL;
+          self._user.updateUser(self.currentUser);
+        });
+      });
+    });
   }
-
-
 }

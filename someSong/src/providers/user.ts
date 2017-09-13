@@ -1,27 +1,22 @@
-import { Injectable } from '@angular/core';
-import {Observable} from "rxjs/Observable";
+import {Injectable} from '@angular/core';
 import firebase from 'firebase';
+import {AngularFireDatabase, FirebaseObjectObservable} from "angularfire2/database";
+import {Auth} from "./auth";
 
 @Injectable()
 export class User {
-  currentUser: Observable<any> = null;
+  currentUser: FirebaseObjectObservable<any>;
 
-  constructor() {
+  constructor(private afDB: AngularFireDatabase,
+              private auth: Auth) {
   }
 
-  logIn(userID: string)
-  {
-    this.currentUser = Observable.create(function(observer: any) {
-      function value(snapshot) {
-        observer.next(snapshot.val());
-      }
+  get CurrentUser() {
+    return this.currentUser;
+  }
 
-      firebase.database().ref('/users/' + userID).on('value', value);
-
-      return function() {
-        firebase.database().ref('/users/' + userID).off('value', value);
-      }
-    });
+  logIn() {
+    this.currentUser = this.afDB.object('/users/' + this.auth.authenticatedUser.uid);
   }
 
   logOut() {
@@ -34,9 +29,14 @@ export class User {
     });
   }
 
-  getUser(userID: string)
-  {
-    return firebase.database().ref('/users/' + userID).once('value');
+  getUserNew(userID: string) {
+    try {
+      return this.afDB.object('/users/' + userID);
+    }
+    catch (err){
+      console.log(err);
+      return null;
+    }
   }
 
   createUser(userID: string, displayName: string, email: string, image: string) {
@@ -52,14 +52,12 @@ export class User {
     firebase.database().ref('/users/' + user.userID).update(user);
   }
 
-
-  getUserQuestions(userID) {
-    return firebase.database().ref('/users/' + userID + '/questions/');
+  getUserQuestionsNew(userID) {
+    return this.afDB.list('/users/' + userID + '/questions/');
   }
 
-
-  getUserAnswers(userID) {
-    return firebase.database().ref('/users/' + userID + '/answers/');
+  getUserAnswersNew(userID) {
+    return this.afDB.list('/users/' + userID + '/answers/');
   }
 
   getUserImage(userID) {

@@ -4,10 +4,10 @@
       SomeSong
     </ion-title>
     <ion-buttons end>
-      <button (tap)="goToLeaderboard()" ion-button>
+      <button (click)="goToLeaderboard()" ion-button>
         <ion-icon name="ribbon"></ion-icon>
       </button>
-      <button ion-button (tap)="goToProfile()">
+      <button ion-button (click)="goToProfile()">
         <ion-icon name="settings"></ion-icon>
       </button>
     </ion-buttons>
@@ -21,40 +21,47 @@
     </ion-card-header>
 
     <ion-scroll scrollY="true">
-      <ion-list no-lines no-padding *ngIf="!isEmpty(userQuestions) && !questionLoading">
-        <ion-item-sliding *ngFor="let question of userQuestions | keyValueFilter | sortQuestions" #item>
-          <button ion-item (tap)="goToQuestion(question.key)">
-            {{question.value.title}}
-            <ion-icon name="checkmark-circle" item-left color="secondary"
-                      *ngIf="question.value.correctAnswer"></ion-icon>
-            <ion-icon name="help-circle" item-left color="dark" *ngIf="!question.value.correctAnswer"></ion-icon>
+      <ion-list no-lines no-padding *ngIf="questions | async; else loadingQuestions; let questionsDetails">
+        <span *ngIf="questionsDetails.length > 0; else noQuestions">
+          <ion-item-sliding *ngFor="let question of questionsDetails" #item>
+            <button ion-item (click)="goToQuestion(details)"
+                    *ngIf="questionDetails[question.$key] | async; else loadingQuestions; let details">
+              {{details.title}}
+              <ion-icon name="checkmark-circle" item-left color="secondary"
+                        *ngIf="details.correctAnswer"></ion-icon>
+              <ion-icon name="help-circle" item-left color="dark" *ngIf="!details.correctAnswer"></ion-icon>
 
-            <ion-icon name="ios-chatbubbles-outline" *ngIf="question.value.answers" item-right class="right-icons">
-              &nbsp;{{(question.value.answers | keyValueFilter)?.length}}
-            </ion-icon>
-          </button>
-          <ion-item-options side="right">
-            <button ion-button (tap)="deleteQuestion(item, question.value)">
-              <ion-icon name="trash"></ion-icon>
-              Delete
+              <ion-icon name="ios-chatbubbles-outline" *ngIf="details.answers" item-right class="right-icons">
+                &nbsp;{{(details.answers | keyValueFilter)?.length}}
+              </ion-icon>
             </button>
-          </ion-item-options>
-        </ion-item-sliding>
+            <ion-item-options side="right">
+              <button ion-button (click)="deleteQuestion(item, details)">
+                <ion-icon name="trash"></ion-icon>
+                Delete
+              </button>
+            </ion-item-options>
+          </ion-item-sliding>
+        </span>
       </ion-list>
-      <div *ngIf="isEmpty(userQuestions) && !questionLoading" class="contentCentered">
-        <div>
-          No questions asked yet. <br>
-          Press the
-          <ion-icon name="help-circle"></ion-icon>
-          button to ask a question.
+      <ng-template #noQuestions>
+        <div class="contentCentered">
+          <div>
+            No questions asked yet. <br>
+            Press the
+            <ion-icon name="help-circle"></ion-icon>
+            button to ask a question.
+          </div>
         </div>
-      </div>
-      <div *ngIf="questionLoading" class="contentCentered">
-        <div class="loader"></div>
-      </div>
+      </ng-template>
+      <ng-template #loadingQuestions>
+        <div id="loadingQuestions" class="contentCentered">
+          <div class="loader"></div>
+        </div>
+      </ng-template>
     </ion-scroll>
     <ion-buttons end class="footer-button">
-      <button (tap)="askAQuestion()" round ion-button color="light">
+      <button (click)="askAQuestion()" round ion-button color="light">
         <ion-icon name="md-help"></ion-icon>
       </button>
     </ion-buttons>
@@ -65,49 +72,58 @@
       My Answers
     </ion-card-header>
     <ion-scroll scrollY="true">
-      <ion-list no-lines no-padding *ngIf="!isEmpty(userAnswers) && !answerLoading">
-        <ion-item-sliding *ngFor="let answer of userAnswers | keyValueFilter | sortAnswers" #item>
-          <button ion-item (tap)="goToQuestion(answer.value.question.questionID)">
-            {{answer.value.question.title}}
-            <ion-icon name="checkmark-circle" *ngIf="answer.value.question.correctAnswer === answer.key"
+      <ion-list no-lines no-padding *ngIf="answers | async; else loadingAnswers; let answersDetails">
+        <span *ngIf="answersDetails.length > 0; else noAnswers">
+          <ion-item-sliding *ngFor="let answer of answersDetails" #item>
+            <button ion-item (click)="goToQuestion(ansDetails.question)"
+                    *ngIf="answerDetails[answer.$key] | async; else loadingAnswers; let ansDetails">
+            <span *ngIf="answerQuestionDetails[answer.$key] | async; else loadingAnswers; let questDetails">
+            {{questDetails.title}}
+            <ion-icon name="checkmark-circle" *ngIf="questDetails.correctAnswer === answer.$key"
                       color="secondary"
                       item-left></ion-icon>
             <ion-icon name="close-circle"
-                      *ngIf="answer.value.question.correctAnswer && answer.value.question.correctAnswer != answer.key"
+                      *ngIf="questDetails.correctAnswer && questDetails.correctAnswer != answer.$key"
                       color="danger" item-left></ion-icon>
-            <ion-icon name="help-circle" color="dark" *ngIf="!answer.value.question.correctAnswer" item-left></ion-icon>
-            <ion-icon name="ios-thumbs-up" *ngIf="answer.value.votes > 0" color="secondary" item-right
+            <ion-icon name="help-circle" color="dark" *ngIf="!questDetails.correctAnswer" item-left></ion-icon>
+            <ion-icon name="ios-thumbs-up" *ngIf="ansDetails.votes > 0" color="secondary" item-right
                       class="right-icons">
-              &nbsp;{{answer.value.votes}}
+              &nbsp;{{ansDetails.votes}}
             </ion-icon>
-            <ion-icon *ngIf="answer.value.votes === 0" item-right class="right-icons">{{answer.value.votes}}</ion-icon>
-            <ion-icon name="ios-thumbs-down" *ngIf="answer.value.votes < 0" color="danger" item-right
+            <ion-icon *ngIf="ansDetails.votes === 0" item-right class="right-icons">{{ansDetails.votes}}</ion-icon>
+            <ion-icon name="ios-thumbs-down" *ngIf="ansDetails.votes < 0" color="danger" item-right
                       class="right-icons">
-              &nbsp;{{answer.value.votes}}
-            </ion-icon>
-          </button>
-          <ion-item-options side="right">
-            <button ion-button (tap)="deleteAnswer(item, answer.value)">
-              <ion-icon name="trash"></ion-icon>
-              Delete
+              &nbsp;{{ansDetails.votes}}
+           </ion-icon>
+              </span>
             </button>
-          </ion-item-options>
-        </ion-item-sliding>
+            <ion-item-options side="right">
+              <button ion-button (click)="deleteAnswer(item, answer)">
+                <ion-icon name="trash"></ion-icon>
+                Delete
+              </button>
+            </ion-item-options>
+          </ion-item-sliding>
+        </span>
       </ion-list>
-      <div *ngIf="isEmpty(userAnswers) && !answerLoading" class="contentCentered">
-        <div>
-          No answers posted yet.<br>
-          Press the
-          <ion-icon name="search"></ion-icon>
-          button to browse for questions.
+      <ng-template #loadingAnswers>
+        <div class="contentCentered">
+          <div class="loader"></div>
         </div>
-      </div>
-      <div *ngIf="answerLoading" class="contentCentered">
-        <div class="loader"></div>
-      </div>
+      </ng-template>
+      <ng-template #noAnswers>
+        <div class="contentCentered">
+          <div>
+            No answers posted yet.<br>
+            Press the
+            <ion-icon name="search"></ion-icon>
+            button to browse for questions.
+          </div>
+        </div>
+      </ng-template>
     </ion-scroll>
     <ion-buttons end class="footer-button">
-      <button (tap)="browseQuestions()" round ion-button color="light">
+      <button (click)="browseQuestions()" round ion-button color="light">
         <ion-icon name="search"></ion-icon>
       </button>
     </ion-buttons>
